@@ -55,4 +55,5 @@ dependencies {
     implementation ("com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.2.4")
     implementation ("com.google.guava:guava:31.1-jre") // Latest stable version
 
+
 }

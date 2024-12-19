@@ -1,33 +1,28 @@
 package com.example.realwearv6
 
 import android.Manifest
-import android.app.AlertDialog
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
-import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
-import androidx.activity.enableEdgeToEdge
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.realwearv6.databinding.ActivityMainBinding
 import com.pedro.rtplibrary.rtsp.RtspCamera2
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
-import android.provider.Settings
-import android.util.Patterns
-import android.view.View
-import android.widget.Toast
-import androidx.camera.view.PreviewView
-import androidx.core.content.ContentProviderCompat.requireContext
 
 
 class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
@@ -36,8 +31,12 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private var streamUrl: String = ""
 
     companion object {
+        const val ACTION_DICTATION = "com.realwear.keyboard.intent.action.DICTATION"
         const val CAMERA_PERMISSION_REQUEST_CODE = 1001
+        const val DICTATION_REQUEST_CODE = 34
     }
+
+    // Real Wear
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +46,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         checkCameraPermission()
 
         binding.btnIPSubmit.setOnClickListener {
+            onLaunchDictation(binding.userInputIPAddress)
             setupIPSubmitButton()
         }
 
@@ -88,14 +88,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
 
     // Stream Start Button
     private fun setupIPSubmitButton() {
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-//            // Request camera permission
-//            ActivityCompat.requestPermissions(
-//                this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE
-//            )
-//        } else {
-//
-//        }
         checkCameraPermission()
         submitIPAndStartStream()
     }
@@ -136,8 +128,8 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.bindToLifecycle(this, cameraSelector, preview)
 
-            // Start RTSP Stream
-            if (rtspCamera.prepareVideo(1280, 720, 30, 1200 * 1024, 2, 0)) {
+            // Start RTSP Stream// here change
+            if (rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 2, 0)) {
                 rtspCamera.startStream(streamUrl)
                 Log.d("RTSP", "Streaming started at $streamUrl")
             } else {
@@ -151,7 +143,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             rtspCamera.stopStream()
             rtspCamera.stopPreview()
 
-            // Notify that the TextureView's surface is no longer needed
+
             val textureView = binding.textureView
             textureView.surfaceTexture?.let {
                 textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(
@@ -210,4 +202,20 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         super.onDestroy()
         stopStream()
     }
+
+
+    // Real Wear
+    fun onLaunchDictation(targetField: EditText) {
+        val intent = Intent(ACTION_DICTATION).apply {
+            putExtra("targetId", targetField.id) // ID of the target text field
+            putExtra("text", targetField.text.toString()) // Optional: Prefill with current text
+        }
+        try {
+            startActivityForResult(intent, DICTATION_REQUEST_CODE)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, "RealWear Dictation Service not found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
 }
