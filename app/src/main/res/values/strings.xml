@@ -3,4 +3,5 @@
     <string name="ip_address_label">Enter IP Address\n</string>
     <string name="stopStream">Stop</string>
     <string name="Stream">Stream</string>
+    <string name="rtsp_link">RTSP Link</string>
 </resources>

@@ -3,6 +3,7 @@ package com.example.realwearv6
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
 import android.os.Bundle
@@ -102,8 +103,11 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             val uniqueDeviceID = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID).toString()
             streamUrl = "rtsp://$userInputIpAddress/$uniqueDeviceID"
 //            Log.d("RTSP", "Stream URL: $streamUrl") // Need used dialog bos maybe
+            binding.tvRtspLink.visibility = View.VISIBLE
+            binding.tvRtspLink.text = streamUrl
             Toast.makeText(this, "Stream URL: $streamUrl", Toast.LENGTH_SHORT).show()
             startCameraAndStream(streamUrl)
+
         } else {
             Toast.makeText(this, "Please provide the correct IP Address and Port number", Toast.LENGTH_SHORT).show()
         }
