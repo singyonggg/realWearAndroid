@@ -39,7 +39,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     }
 
     // Real Wear
-
     override fun onCreate(savedInstanceState: Bundle?) {
         // supportActionBar?.hide()
 
@@ -60,15 +59,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         }
     }
 
-//    private fun checkCameraPermission() {
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(
-//                this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE
-//            )
-//        } else {
-//            setupRTSPStream()
-//        }
-//    }
     private fun checkCameraPermission() {
         val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
         val missingPermissions = permissions.filter {
@@ -115,8 +105,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         if (userInputIpAddress.isNotEmpty()) {
             binding.userInputIPAddress.text.clear()
             val uniqueDeviceID = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID).toString()
-            streamUrl = "rtsp://$userInputIpAddress/$uniqueDeviceID"
-//            Log.d("RTSP", "Stream URL: $streamUrl") // Need used dialog bos maybe
+            streamUrl = "rtsp://$userInputIpAddress:8554/$uniqueDeviceID"
             binding.tvRtspLink.visibility = View.VISIBLE
             binding.tvRtspLink.text = streamUrl
             Toast.makeText(this, "Stream URL: $streamUrl", Toast.LENGTH_SHORT).show()
@@ -126,44 +115,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             Toast.makeText(this, "Please provide the correct IP Address and Port number", Toast.LENGTH_SHORT).show()
         }
     }
-
-//    private fun startCameraAndStream(streamUrl: String) {
-//        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-//
-//        cameraProviderFuture.addListener({
-//            val cameraProvider = cameraProviderFuture.get()
-//
-//            // Unbind all existing use cases before adding a new one
-//            cameraProvider.unbindAll()
-//
-//            val preview = Preview.Builder().build().also {
-//                it.setSurfaceProvider(binding.textureView.surfaceTexture?.let { surfaceTexture ->
-//                    Preview.SurfaceProvider { request ->
-//                        request.provideSurface(Surface(surfaceTexture), ContextCompat.getMainExecutor(this)) {}
-//                    }
-//                })
-//
-//            }
-//
-//            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-//            cameraProvider.bindToLifecycle(this, cameraSelector, preview)
-//
-//            // Start RTSP Stream// here change
-//            if (rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 2, 0)) {
-//                rtspCamera.startStream(streamUrl)
-//                Log.d("RTSP", "Streaming started at $streamUrl")
-//            } else {
-//                Toast.makeText(this, "Failed to prepare RTSP stream", Toast.LENGTH_LONG).show()
-//            }
-////            if (rtspCamera.prepareVideo(1280, 720, 10, 100 * 100, 1, 0)) { // 30fps, 600kbps, keyframe every 1 second
-////                rtspCamera.startStream(streamUrl)
-////                Log.d("RTSP", "Streaming started at $streamUrl")
-////            }else{
-////                Toast.makeText(this, "Failed to prepare RTSP stream", Toast.LENGTH_LONG).show()
-////            }
-//
-//        }, ContextCompat.getMainExecutor(this))
-//    }
 
     private fun startCameraAndStream(streamUrl: String) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -183,8 +134,9 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.bindToLifecycle(this, cameraSelector, preview)
 
+            //rtspCamera.setVideoCodec(VideoCodec.H264)
             // Configure RTSP with audio
-            if (rtspCamera.prepareAudio() && rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 2, 0)) {
+            if (rtspCamera.prepareAudio() && rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 1, 0)) {
                 rtspCamera.startStream(streamUrl)
                 Log.d("RTSP", "Streaming started at $streamUrl")
             } else {
@@ -211,20 +163,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         }
     }
 
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-//            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                setupRTSPStream()
-//            } else {
-//                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//    }
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -276,6 +214,18 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
 
 
     // Real Wear
+//    fun onLaunchDictation(targetField: EditText) {
+//        val intent = Intent(ACTION_DICTATION).apply {
+//            putExtra("targetId", targetField.id) // ID of the target text field
+//            putExtra("text", targetField.text.toString()) // Optional: Prefill with current text
+//        }
+//        try {
+//            startActivityForResult(intent, DICTATION_REQUEST_CODE)
+//        } catch (e: ActivityNotFoundException) {
+//            Toast.makeText(this, "RealWear Dictation Service not found", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+
     fun onLaunchDictation(targetField: EditText) {
         val intent = Intent(ACTION_DICTATION).apply {
             putExtra("targetId", targetField.id) // ID of the target text field
@@ -287,6 +237,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             Toast.makeText(this, "RealWear Dictation Service not found", Toast.LENGTH_SHORT).show()
         }
     }
+
 
 
 }

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">realWearV6</string>
     <string name="ip_address_label">Enter IP Address\n</string>
-    <string name="stopStream">Stop</string>
+    <string name="stopStream">Stop Stream</string>
     <string name="Stream">Stream</string>
     <string name="rtsp_link">RTSP Link</string>
 </resources>
