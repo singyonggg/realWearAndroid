@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.realwearv6.databinding.ActivityMainBinding
 import com.pedro.rtplibrary.rtsp.RtspCamera2
+import com.pedro.rtsp.rtsp.VideoCodec
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 
 
@@ -59,15 +60,28 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         }
     }
 
+//    private fun checkCameraPermission() {
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(
+//                this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE
+//            )
+//        } else {
+//            setupRTSPStream()
+//        }
+//    }
     private fun checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE
-            )
+        val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), CAMERA_PERMISSION_REQUEST_CODE)
         } else {
             setupRTSPStream()
         }
     }
+
 
     // This used to prepare the Texture View to host the camera
     private fun setupRTSPStream() {
@@ -113,13 +127,49 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         }
     }
 
+//    private fun startCameraAndStream(streamUrl: String) {
+//        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+//
+//        cameraProviderFuture.addListener({
+//            val cameraProvider = cameraProviderFuture.get()
+//
+//            // Unbind all existing use cases before adding a new one
+//            cameraProvider.unbindAll()
+//
+//            val preview = Preview.Builder().build().also {
+//                it.setSurfaceProvider(binding.textureView.surfaceTexture?.let { surfaceTexture ->
+//                    Preview.SurfaceProvider { request ->
+//                        request.provideSurface(Surface(surfaceTexture), ContextCompat.getMainExecutor(this)) {}
+//                    }
+//                })
+//
+//            }
+//
+//            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+//            cameraProvider.bindToLifecycle(this, cameraSelector, preview)
+//
+//            // Start RTSP Stream// here change
+//            if (rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 2, 0)) {
+//                rtspCamera.startStream(streamUrl)
+//                Log.d("RTSP", "Streaming started at $streamUrl")
+//            } else {
+//                Toast.makeText(this, "Failed to prepare RTSP stream", Toast.LENGTH_LONG).show()
+//            }
+////            if (rtspCamera.prepareVideo(1280, 720, 10, 100 * 100, 1, 0)) { // 30fps, 600kbps, keyframe every 1 second
+////                rtspCamera.startStream(streamUrl)
+////                Log.d("RTSP", "Streaming started at $streamUrl")
+////            }else{
+////                Toast.makeText(this, "Failed to prepare RTSP stream", Toast.LENGTH_LONG).show()
+////            }
+//
+//        }, ContextCompat.getMainExecutor(this))
+//    }
+
     private fun startCameraAndStream(streamUrl: String) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
-
-            // Unbind all existing use cases before adding a new one
             cameraProvider.unbindAll()
 
             val preview = Preview.Builder().build().also {
@@ -128,14 +178,13 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
                         request.provideSurface(Surface(surfaceTexture), ContextCompat.getMainExecutor(this)) {}
                     }
                 })
-
             }
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.bindToLifecycle(this, cameraSelector, preview)
 
-            // Start RTSP Stream// here change
-            if (rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 2, 0)) {
+            // Configure RTSP with audio
+            if (rtspCamera.prepareAudio() && rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 2, 0)) {
                 rtspCamera.startStream(streamUrl)
                 Log.d("RTSP", "Streaming started at $streamUrl")
             } else {
@@ -143,6 +192,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             }
         }, ContextCompat.getMainExecutor(this))
     }
+
 
     private fun stopStream() {
         if (rtspCamera.isStreaming) {
@@ -161,6 +211,20 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         }
     }
 
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<String>,
+//        grantResults: IntArray
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+//            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                setupRTSPStream()
+//            } else {
+//                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
+//            }
+//        }
+//    }
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -168,13 +232,14 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 setupRTSPStream()
             } else {
-                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Camera and audio permissions denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
     override fun onAuthErrorRtsp() {
         Log.e("RTSP", "Authentication error")

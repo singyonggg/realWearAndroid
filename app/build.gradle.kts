@@ -55,5 +55,18 @@ dependencies {
     implementation ("com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.2.4")
     implementation ("com.google.guava:guava:31.1-jre") // Latest stable version
 
+    // Exo Player
+    implementation ("androidx.media3:media3-exoplayer:1.3.1")
+    implementation ("androidx.media3:media3-exoplayer-dash:1.3.1")
+    implementation ("androidx.media3:media3-ui:1.3.1")
+
+    implementation ("com.arthenica:ffmpeg-kit-full:6.0-2")
+
+    implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
+
+    implementation ("com.infobip:google-webrtc:1.0.0035529")
+
+//    implementation ("org.webrtc:google-webrtc:1.0.+")
+
 
 }
