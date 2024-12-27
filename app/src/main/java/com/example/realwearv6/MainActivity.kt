@@ -25,12 +25,17 @@ import com.example.realwearv6.databinding.ActivityMainBinding
 import com.pedro.rtplibrary.rtsp.RtspCamera2
 import com.pedro.rtsp.rtsp.VideoCodec
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
+import org.json.JSONObject
 
 
 class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private lateinit var binding: ActivityMainBinding
     private lateinit var rtspCamera: RtspCamera2
     private var streamUrl: String = ""
+    private lateinit var socket: Socket
 
     companion object {
         const val ACTION_DICTATION = "com.realwear.keyboard.intent.action.DICTATION"
@@ -38,10 +43,18 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         const val DICTATION_REQUEST_CODE = 34
     }
 
+
+    init {
+        try {
+            // Initialize the Socket.IO connection to the Flask server
+            socket = IO.socket("http://192.168.1.54:4999")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     // Real Wear
     override fun onCreate(savedInstanceState: Bundle?) {
-        // supportActionBar?.hide()
-
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -57,6 +70,28 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         binding.btnCloseStream.setOnClickListener {
             stopStream()
         }
+
+
+        // Connect to WebSocket server
+        socket.connect()
+
+        socket.on("update") { args ->
+            runOnUiThread {
+                try {
+                    if (args.isNotEmpty()) {
+                        val data = args[0] as JSONObject
+                        val value = data.getInt("value")
+                        Log.d("SocketIO", "Parsed value: $value")
+                        binding.tvPassValue.text = "Value: $value"
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.e("SocketIO", "Error parsing data: ${e.message}")
+                }
+            }
+        }
+
+
     }
 
     private fun checkCameraPermission() {
@@ -210,22 +245,13 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     override fun onDestroy() {
         super.onDestroy()
         stopStream()
+        if (socket.connected()) {
+            socket.disconnect() // Ensure the WebSocket is disconnected
+        }
     }
 
 
     // Real Wear
-//    fun onLaunchDictation(targetField: EditText) {
-//        val intent = Intent(ACTION_DICTATION).apply {
-//            putExtra("targetId", targetField.id) // ID of the target text field
-//            putExtra("text", targetField.text.toString()) // Optional: Prefill with current text
-//        }
-//        try {
-//            startActivityForResult(intent, DICTATION_REQUEST_CODE)
-//        } catch (e: ActivityNotFoundException) {
-//            Toast.makeText(this, "RealWear Dictation Service not found", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
     fun onLaunchDictation(targetField: EditText) {
         val intent = Intent(ACTION_DICTATION).apply {
             putExtra("targetId", targetField.id) // ID of the target text field

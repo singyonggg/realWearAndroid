@@ -64,7 +64,14 @@ dependencies {
 
     implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
 
-    implementation ("com.infobip:google-webrtc:1.0.0035529")
+
+    implementation ("io.socket:socket.io-client:2.0.1")
+    implementation ("org.json:json:20211205")
+
+
+
+//    implementation ("io.ktor:ktor-client-android:1.6.4")
+//    implementation ("io.ktor:ktor-client-websockets:1.6.4")
 
 //    implementation ("org.webrtc:google-webrtc:1.0.+")
 
