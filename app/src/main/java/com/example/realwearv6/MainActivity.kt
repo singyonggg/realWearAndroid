@@ -71,6 +71,13 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             stopStream()
         }
 
+        binding.imgBtnSetting.setOnClickListener {
+            // Create an intent to navigate to SettingsActivity
+            val intent = Intent(this, SettingsActivity::class.java)
+            // Start the activity
+            startActivity(intent)
+        }
+
 
         // Connect to WebSocket server
         socket.connect()
