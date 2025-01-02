@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
 
     init {
         try {
-            socket = IO.socket("http://192.168.1.54:4999")
+            socket = IO.socket("http://$userInputIpAddress:4999")
         } catch (e: Exception) {
             e.printStackTrace()
         }
