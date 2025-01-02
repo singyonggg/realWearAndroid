@@ -2,12 +2,6 @@
 <!-- Preference Screen -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference
-        android:key="top_layout"
-        android:title=""
-        android:summary=""
-        android:layout="@layout/custom_linear_layout" />
-
     <PreferenceCategory android:title="@string/share_stream" android:layout="@layout/custom_preference_category">
             <Preference
                 android:key="copy_to_clipboard"
