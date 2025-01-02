@@ -43,21 +43,12 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private var streamUrl: String = ""
     private var deviceID: String = ""
     private var userInputIpAddress:String = ""
-    private lateinit var socket: Socket
+    private var socket: Socket? = null
 
     companion object {
         const val ACTION_DICTATION = "com.realwear.keyboard.intent.action.DICTATION"
         const val CAMERA_PERMISSION_REQUEST_CODE = 1001
         const val DICTATION_REQUEST_CODE = 34
-    }
-
-
-    init {
-        try {
-            socket = IO.socket("http://$userInputIpAddress:4999")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     // Real Wear
@@ -89,12 +80,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             // Start the activity
             startActivity(intent)
         }
-
-        socket.connect()
-        socket.emit("join", JSONObject().put("room", deviceID))
-        // Listen for data from the server
-        socket.on("data", onDataReceived)
-
     }
 
     private val onDataReceived = Emitter.Listener { args ->
@@ -168,10 +153,14 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         if (userInputIpAddress.isNotEmpty()) {
             binding.userInputIPAddress.text.clear()
 
+            socket = IO.socket("http://$userInputIpAddress:4999")
+            socket?.connect()
+            socket?.emit("join", JSONObject().put("room", deviceID))
+            socket?.on("data", onDataReceived)
+
             streamUrl = "rtsp://$userInputIpAddress:8554/$deviceID"
 
             // Save the streamUrl to SharedPreferences
-
             val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
             sharedPreferences.edit().putString("streamUrl", streamUrl).apply()
 
@@ -278,8 +267,8 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     override fun onDestroy() {
         super.onDestroy()
         stopStream()
-        if (socket.connected()) {
-            socket.disconnect() // Ensure the WebSocket is disconnected
+        if (socket?.connected() == true) {
+            socket?.disconnect() // Ensure the WebSocket is disconnected
         }
     }
 
