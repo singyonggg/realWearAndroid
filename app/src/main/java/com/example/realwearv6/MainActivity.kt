@@ -62,7 +62,11 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     // Real Wear
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+
         setContentView(binding.root)
 
         checkCameraPermission()
