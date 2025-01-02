@@ -4,4 +4,9 @@
     <string name="stopStream">Stop Stream</string>
     <string name="Stream">Stream</string>
     <string name="rtsp_link">RTSP Link</string>
+    <string name="share_stream">Share the stream</string>
+    <string name="advanced_setting">Advanced</string>
+    <string name="action_bar">Action Bar</string>
+    action_bar
+
 </resources>

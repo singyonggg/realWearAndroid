@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.preference.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,7 +64,6 @@ dependencies {
     implementation ("com.arthenica:ffmpeg-kit-full:6.0-2")
 
     implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
-
 
     implementation ("io.socket:socket.io-client:2.0.1")
     implementation ("org.json:json:20211205")
