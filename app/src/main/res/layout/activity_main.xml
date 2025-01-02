@@ -75,7 +75,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userInputIPAddress" />
 
-<!--    android:orientation="horizontal"-->
     <TextView
         android:id="@+id/tvRtspLink"
         android:layout_width="match_parent"
@@ -115,7 +114,7 @@
         android:layout_height="22dp"
         android:gravity="center_horizontal"
         android:text="value "
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textIsSelectable="true"
         android:textSize="15dp"
         android:textStyle="italic"
@@ -131,7 +130,7 @@
         android:layout_height="50dp"
         android:gravity="center_horizontal"
         android:text="value "
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textIsSelectable="true"
         android:textSize="15dp"
         android:textStyle="italic"
@@ -147,7 +146,7 @@
         android:layout_height="50dp"
         android:gravity="center_horizontal"
         android:text="value "
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textIsSelectable="true"
         android:textSize="15dp"
         android:textStyle="italic"

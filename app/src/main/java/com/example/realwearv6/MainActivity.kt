@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private lateinit var rtspCamera: RtspCamera2
     private var streamUrl: String = ""
     private var deviceID: String = ""
+    private var userInputIpAddress:String = ""
     private lateinit var socket: Socket
 
     companion object {
@@ -162,7 +163,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     }
 
     private fun submitIPAndStartStream() {
-        val userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
+        userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
 
         if (userInputIpAddress.isNotEmpty()) {
             binding.userInputIPAddress.text.clear()
