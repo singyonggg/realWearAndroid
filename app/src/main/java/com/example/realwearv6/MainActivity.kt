@@ -78,6 +78,13 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             stopStream()
         }
 
+        binding.imgBtnSetting.setOnClickListener {
+            // Create an intent to navigate to SettingsActivity
+            val intent = Intent(this, SettingsActivity::class.java)
+            // Start the activity
+            startActivity(intent)
+        }
+
         socket.connect()
         socket.emit("join", JSONObject().put("room", deviceID))
         // Listen for data from the server
@@ -157,6 +164,11 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             binding.userInputIPAddress.text.clear()
 
             streamUrl = "rtsp://$userInputIpAddress:8554/$deviceID"
+
+            // Save the streamUrl to SharedPreferences
+
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            sharedPreferences.edit().putString("streamUrl", streamUrl).apply()
 
             binding.tvRtspLink.visibility = View.VISIBLE
             binding.tvRtspLink.text = streamUrl
