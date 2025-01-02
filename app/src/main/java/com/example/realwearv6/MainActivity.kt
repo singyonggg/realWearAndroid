@@ -5,9 +5,11 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Base64
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
@@ -28,13 +30,18 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import org.json.JSONObject
+
 
 
 class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private lateinit var binding: ActivityMainBinding
     private lateinit var rtspCamera: RtspCamera2
     private var streamUrl: String = ""
+    private var deviceID: String = ""
     private lateinit var socket: Socket
 
     companion object {
@@ -46,7 +53,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
 
     init {
         try {
-            // Initialize the Socket.IO connection to the Flask server
             socket = IO.socket("http://192.168.1.54:4999")
         } catch (e: Exception) {
             e.printStackTrace()
@@ -60,6 +66,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         setContentView(binding.root)
 
         checkCameraPermission()
+        deviceID = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID).toString()
 
         binding.btnIPSubmit.setOnClickListener {
             onLaunchDictation(binding.userInputIPAddress)
@@ -71,27 +78,36 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             stopStream()
         }
 
-
-        // Connect to WebSocket server
         socket.connect()
+        socket.emit("join", JSONObject().put("room", deviceID))
+        // Listen for data from the server
+        socket.on("data", onDataReceived)
 
-        socket.on("update") { args ->
-            runOnUiThread {
-                try {
-                    if (args.isNotEmpty()) {
-                        val data = args[0] as JSONObject
-                        val value = data.getInt("value")
-                        Log.d("SocketIO", "Parsed value: $value")
-                        binding.tvPassValue.text = "Value: $value"
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Log.e("SocketIO", "Error parsing data: ${e.message}")
-                }
-            }
+    }
+
+    private val onDataReceived = Emitter.Listener { args ->
+        runOnUiThread {
+            val data = args[0] as JSONObject
+            // Handle the received data
+            val faceCount = data.getInt("face_count")
+
+            val value2 = data.getDouble("detect_time")
+            val formattedDate = java.text.SimpleDateFormat(
+                  "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                    ).format(Date((value2 * 1000).toLong()))  // Multiply by 1000 to convert seconds to milliseconds
+            val comment = data.getString("comment")
+
+            val imgByteArray = data.get("image") as ByteArray  // Get the byte array of the image
+            val bitmap = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
+
+            // Update your UI with the received data
+            // For example, display the face count in a TextView
+            binding.tvPassValue.text = "Value: $faceCount"
+            binding.tvPassValue2.text = "Detect time: $formattedDate"
+            binding.tvPassValue3.text = "Comment: $comment"
+            binding.ivDisplayImage.setImageBitmap(bitmap)
         }
-
-
     }
 
     private fun checkCameraPermission() {
@@ -139,8 +155,9 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
 
         if (userInputIpAddress.isNotEmpty()) {
             binding.userInputIPAddress.text.clear()
-            val uniqueDeviceID = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID).toString()
-            streamUrl = "rtsp://$userInputIpAddress:8554/$uniqueDeviceID"
+
+            streamUrl = "rtsp://$userInputIpAddress:8554/$deviceID"
+
             binding.tvRtspLink.visibility = View.VISIBLE
             binding.tvRtspLink.text = streamUrl
             Toast.makeText(this, "Stream URL: $streamUrl", Toast.LENGTH_SHORT).show()
@@ -169,9 +186,8 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.bindToLifecycle(this, cameraSelector, preview)
 
-            //rtspCamera.setVideoCodec(VideoCodec.H264)
             // Configure RTSP with audio
-            if (rtspCamera.prepareAudio() && rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 1, 0)) {
+            if (rtspCamera.prepareAudio() && rtspCamera.prepareVideo(1280, 720, 10, 1200 * 1024, 1, 1)) {
                 rtspCamera.startStream(streamUrl)
                 Log.d("RTSP", "Streaming started at $streamUrl")
             } else {
@@ -194,7 +210,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
                 )
             }
 
-            Toast.makeText(this, "Stream stopped", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Stream stopped and exit room", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -249,7 +265,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             socket.disconnect() // Ensure the WebSocket is disconnected
         }
     }
-
 
     // Real Wear
     fun onLaunchDictation(targetField: EditText) {
