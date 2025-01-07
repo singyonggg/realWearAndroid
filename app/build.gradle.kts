@@ -52,7 +52,9 @@ dependencies {
 
     implementation ("androidx.camera:camera-camera2:1.1.0-alpha10")
     implementation ("androidx.camera:camera-lifecycle:1.1.0-alpha10")
-    implementation ("androidx.camera:camera-view:1.0.0-alpha25")
+    implementation ("androidx.camera:camera-view:1.0.0-alpha10")
+
+
     implementation ("com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.2.4")
     implementation ("com.google.guava:guava:31.1-jre") // Latest stable version
 
@@ -68,14 +70,6 @@ dependencies {
     implementation ("io.socket:socket.io-client:2.0.1")
     implementation ("org.json:json:20211205")
 
-
-
-
-
-//    implementation ("io.ktor:ktor-client-android:1.6.4")
-//    implementation ("io.ktor:ktor-client-websockets:1.6.4")
-
-//    implementation ("org.webrtc:google-webrtc:1.0.+")
 
 
 }

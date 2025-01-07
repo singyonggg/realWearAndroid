@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private lateinit var rtspCamera: RtspCamera2
     private var streamUrl: String = ""
     private var deviceID: String = ""
-//    private lateinit var socket: Socket
     private var socket: Socket ?= null
 
 
@@ -56,7 +55,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         super.onCreate(savedInstanceState)
 
         // Set the screen orientation to landscape
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        //requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
