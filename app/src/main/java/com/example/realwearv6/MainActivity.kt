@@ -42,8 +42,9 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private lateinit var rtspCamera: RtspCamera2
     private var streamUrl: String = ""
     private var deviceID: String = ""
-    private var userInputIpAddress:String = ""
-    private var socket: Socket? = null
+//    private lateinit var socket: Socket
+    private var socket: Socket ?= null
+
 
     companion object {
         const val ACTION_DICTATION = "com.realwear.keyboard.intent.action.DICTATION"
@@ -51,14 +52,10 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         const val DICTATION_REQUEST_CODE = 34
     }
 
-    // Real Wear
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         binding = ActivityMainBinding.inflate(layoutInflater)
-
-
         setContentView(binding.root)
 
         checkCameraPermission()
@@ -80,6 +77,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             // Start the activity
             startActivity(intent)
         }
+
     }
 
     private val onDataReceived = Emitter.Listener { args ->
@@ -87,19 +85,16 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             val data = args[0] as JSONObject
             // Handle the received data
             val faceCount = data.getInt("face_count")
-
             val value2 = data.getDouble("detect_time")
             val formattedDate = java.text.SimpleDateFormat(
-                  "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                    ).format(Date((value2 * 1000).toLong()))  // Multiply by 1000 to convert seconds to milliseconds
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+            ).format(Date((value2 * 1000).toLong()))  // Multiply by 1000 to convert seconds to milliseconds
             val comment = data.getString("comment")
 
             val imgByteArray = data.get("image") as ByteArray  // Get the byte array of the image
             val bitmap = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
 
-            // Update your UI with the received data
-            // For example, display the face count in a TextView
             binding.tvPassValue.text = "Value: $faceCount"
             binding.tvPassValue2.text = "Detect time: $formattedDate"
             binding.tvPassValue3.text = "Comment: $comment"
@@ -125,6 +120,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     private fun setupRTSPStream() {
         rtspCamera = RtspCamera2(binding.textureView, this)
 
+
         binding.textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
                 if (streamUrl.isNotEmpty()) {
@@ -148,17 +144,17 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     }
 
     private fun submitIPAndStartStream() {
-        userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
+        val userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
 
         if (userInputIpAddress.isNotEmpty()) {
             binding.userInputIPAddress.text.clear()
+            streamUrl = "rtsp://$userInputIpAddress:8554/$deviceID"
 
-            socket = IO.socket("http://$userInputIpAddress:4999")
+            socket = IO.socket("http://$userInputIpAddress:5000")
             socket?.connect()
             socket?.emit("join", JSONObject().put("room", deviceID))
+            Toast.makeText(this, deviceID, Toast.LENGTH_SHORT).show()
             socket?.on("data", onDataReceived)
-
-            streamUrl = "rtsp://$userInputIpAddress:8554/$deviceID"
 
             // Save the streamUrl to SharedPreferences
             val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
@@ -207,7 +203,6 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
         if (rtspCamera.isStreaming) {
             rtspCamera.stopStream()
             rtspCamera.stopPreview()
-
 
             val textureView = binding.textureView
             textureView.surfaceTexture?.let {
@@ -267,8 +262,11 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     override fun onDestroy() {
         super.onDestroy()
         stopStream()
-        if (socket?.connected() == true) {
-            socket?.disconnect() // Ensure the WebSocket is disconnected
+        socket?.let {
+            if (it.connected()) {
+                it.disconnect()
+                it.off("data", onDataReceived)
+            }
         }
     }
 
@@ -284,7 +282,5 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             Toast.makeText(this, "RealWear Dictation Service not found", Toast.LENGTH_SHORT).show()
         }
     }
-
-
 
 }
