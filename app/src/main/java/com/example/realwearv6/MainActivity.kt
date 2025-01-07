@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Set the screen orientation to landscape
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity(), ConnectCheckerRtsp {
             stopStream()
         }
 
-        binding.imgBtnSetting.setOnClickListener {
+        binding.btnMoreOptions.setOnClickListener {
             // Create an intent to navigate to SettingsActivity
             val intent = Intent(this, SettingsActivity::class.java)
             // Start the activity

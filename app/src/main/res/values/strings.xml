@@ -1,12 +1,17 @@
 <resources>
     <string name="app_name">realWearV6</string>
     <string name="ip_address_label">Enter IP Address\n</string>
-    <string name="stopStream">Stop Stream</string>
-    <string name="Stream">Stream</string>
+    <string name="stopStream">STOP</string>
+    <string name="Stream">STREAM</string>
     <string name="rtsp_link">RTSP Link</string>
     <string name="share_stream">Share the stream</string>
     <string name="advanced_setting">Advanced</string>
     <string name="action_bar">Action Bar</string>
-    action_bar
+    <string name="more_option">MORE OPTIONS</string>
+    <string name="zoom_level">ZOOM LEVEL</string>
+    <string name="zoom_level1">1</string>
+    <string name="zoom_level2">2</string>
+    <string name="zoom_level3">3</string>
+
 
 </resources>

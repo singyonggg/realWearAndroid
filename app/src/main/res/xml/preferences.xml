@@ -9,12 +9,6 @@
                 android:title="Copy stream link" />
         </PreferenceCategory>
 
-        <PreferenceCategory android:title="@string/advanced_setting" android:layout="@layout/custom_preference_category">
-            <SwitchPreference
-                android:key="switch"
-                android:title="Dark Mode"
-                android:summary="Click to switch on or off"
-                android:defaultValue="true" />
-        </PreferenceCategory>
+
 
 </PreferenceScreen>
