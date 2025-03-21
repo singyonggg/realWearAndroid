@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.preference.ktx)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,6 +71,19 @@ dependencies {
     implementation ("io.socket:socket.io-client:2.0.1")
     implementation ("org.json:json:20211205")
 
+    // Java language implementation
+    implementation ("androidx.fragment:fragment:$1.8.5")
+    // Kotlin
+    implementation ("androidx.fragment:fragment-ktx:$1.8.5")
 
+    implementation ("com.google.android.material:material:1.9.0")
+
+
+
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-dynamic-features-fragment:2.3.5")
+
+    implementation("com.squareup.okhttp3:okhttp:4.5.0")
 
 }

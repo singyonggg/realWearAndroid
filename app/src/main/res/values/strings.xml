@@ -12,6 +12,11 @@
     <string name="zoom_level1">1</string>
     <string name="zoom_level2">2</string>
     <string name="zoom_level3">3</string>
-
-
+    <string name="home_title">HANDSFREE FOR LIVE STREAMING</string>
+    <string name="home_titleDesc">Enter IP address and select room to join.</string>
+    <string name="ipAddress">IP ADDRESS</string>
+    <string name="result">Result</string>
+    <string name="roomName">ROOM NAME</string>
+    <string name="workflow">Workflow</string>
+    <string name="workflow_desc">Description</string>
 </resources>
