@@ -15,11 +15,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import com.example.realwearv6.databinding.FragmentHomeBinding
 import java.sql.Connection
-
-// new added to connect with Flask
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -32,7 +29,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
 import android.content.Context
 import android.util.Log
 import okhttp3.*
@@ -43,21 +39,13 @@ class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
     private var userInputRoomName: String? = null
     private var ipAddressOnly: String = ""
-
-    // Variables for connecting Flask
-    private lateinit var textFieldMessage: EditText
-    private lateinit var buttonSendPost: Button
-    private lateinit var buttonSendGet: Button
-    private lateinit var textViewResponse: TextView
     private var url: String = ""
-    private val POST = "POST"
     private val GET = "GET"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         binding = FragmentHomeBinding.inflate(inflater,container, false)
         url = loadConfig("server_ip")
         ipAddressOnly = getIpAddressOnly(url)
@@ -69,42 +57,36 @@ class HomeFragment : Fragment() {
 
         // Load available rooms
         sendRequest(GET,"get_available_rooms")
-
         binding.imageBtnRefreshRoom.setOnClickListener{
             sendRequest(GET,"get_available_rooms")
         }
 
+        // Display selected room name in text view
         binding.lvRoomName?.setOnItemClickListener { parent, view, position, id ->
             userInputRoomName = parent.getItemAtPosition(position).toString().trim()
-
             binding.tvRoom.text = "Selected Room: $userInputRoomName"
 
             Toast.makeText(requireContext(), "Selected Room: $userInputRoomName", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnIPSubmit.setOnClickListener{
-//            val userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
-//            val userInputRoomName = binding.spinnerRoomName.selectedItem.toString().trim()
-
             if(!ipAddressOnly.isNullOrEmpty() && !userInputRoomName.isNullOrEmpty()){
+                // Passing data to Live Streaming fragment
                 val bundle = Bundle()
                 bundle.putString("userInputIpAddress", ipAddressOnly)
                 bundle.putString("userInputRoomName",userInputRoomName)
-//                bundle.putInt("targetId", binding.userInputIPAddress.id)
 
-//                val targetId = binding.userInputIPAddress.id
-//                Log.d("TargetID", "Target ID: $targetId")
-
+                // Navigate to Live Streaming fragment
                 val currentDestination = findNavController().currentDestination
                 if (currentDestination?.id != R.id.liveStreamingFragment) {
                     findNavController().navigate(R.id.action_homeFragment_to_liveStreamingFragment, bundle)
 
                 } else {
-                    Toast.makeText(requireContext(), "You are already in the LiveStreamingFragment", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Live Streaming is open.", Toast.LENGTH_SHORT).show()
                 }
 
             } else{
-                Toast.makeText(requireContext(), "Please provide both a valid IP Address and Room Name.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Choose a room to join.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -154,17 +136,13 @@ class HomeFragment : Fragment() {
                 val responseData = response.body?.string() ?: "No Response"
 
                 requireActivity().runOnUiThread {
-                    // Split into individual room IDs (assuming the response is space-separated)
                     val roomIdList = responseData.split(",")
 
                     // Create ArrayAdapter for the ListView
                     val adapter = ArrayAdapter(requireContext(), R.layout.list_item_room, R.id.tvRoomItem, roomIdList)
-
-                    // Set the adapter to the ListView
                     binding.lvRoomName?.adapter = adapter
                 }
             }
         })
     }
-
 }

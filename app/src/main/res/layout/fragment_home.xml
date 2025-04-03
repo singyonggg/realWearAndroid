@@ -96,27 +96,6 @@
 
     </LinearLayout>
 
-<!--    <com.google.android.material.textfield.TextInputLayout-->
-<!--        android:id="@+id/inputLayoutIPAddress"-->
-<!--        android:layout_width="230dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:hint="@string/ipAddress"-->
-<!--        android:background="@color/white"-->
-<!--        android:textColorHint="@color/light_grey"-->
-<!--        android:layout_marginTop="6dp"-->
-<!--        android:layout_marginLeft="60dp"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/selectionLayout"-->
-<!--        app:layout_constraintLeft_toLeftOf="parent">-->
-<!--        <com.google.android.material.textfield.TextInputEditText-->
-<!--            android:id="@+id/userInputIPAddress"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:importantForAccessibility="yes"-->
-<!--            android:textColor="@color/black"-->
-<!--            android:textColorHint="@color/dark_grey"-->
-<!--            android:textSize="15sp"/>-->
-<!--    </com.google.android.material.textfield.TextInputLayout>-->
-
     <Button
         android:id="@+id/btnIPSubmit"
         android:layout_width="140dp"
