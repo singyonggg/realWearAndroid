@@ -41,6 +41,8 @@ import java.util.*
 
 class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
+    private var userInputRoomName: String? = null
+    private var ipAddressOnly: String = ""
 
     // Variables for connecting Flask
     private lateinit var textFieldMessage: EditText
@@ -58,6 +60,7 @@ class HomeFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentHomeBinding.inflate(inflater,container, false)
         url = loadConfig("server_ip")
+        ipAddressOnly = getIpAddressOnly(url)
         return binding.root
     }
 
@@ -69,18 +72,28 @@ class HomeFragment : Fragment() {
 
         binding.imageBtnRefreshRoom.setOnClickListener{
             sendRequest(GET,"get_available_rooms")
+        }
 
+        binding.lvRoomName?.setOnItemClickListener { parent, view, position, id ->
+            userInputRoomName = parent.getItemAtPosition(position).toString().trim()
+
+            binding.tvRoom.text = "Selected Room: $userInputRoomName"
+
+            Toast.makeText(requireContext(), "Selected Room: $userInputRoomName", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnIPSubmit.setOnClickListener{
-            val userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
-            val userInputRoomID = binding.spinnerRoom.selectedItem.toString().trim()
+//            val userInputIpAddress = binding.userInputIPAddress.text.toString().trim()
+//            val userInputRoomName = binding.spinnerRoomName.selectedItem.toString().trim()
 
-            if(!userInputIpAddress.isNullOrEmpty() && !userInputRoomID.isNullOrEmpty()){
+            if(!ipAddressOnly.isNullOrEmpty() && !userInputRoomName.isNullOrEmpty()){
                 val bundle = Bundle()
-                bundle.putString("userInputIpAddress", userInputIpAddress)
-                bundle.putString("userInputRoomID",userInputRoomID)
-                bundle.putInt("targetId", binding.userInputIPAddress.id)
+                bundle.putString("userInputIpAddress", ipAddressOnly)
+                bundle.putString("userInputRoomName",userInputRoomName)
+//                bundle.putInt("targetId", binding.userInputIPAddress.id)
+
+//                val targetId = binding.userInputIPAddress.id
+//                Log.d("TargetID", "Target ID: $targetId")
 
                 val currentDestination = findNavController().currentDestination
                 if (currentDestination?.id != R.id.liveStreamingFragment) {
@@ -108,6 +121,16 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun getIpAddressOnly(fullUrl: String): String {
+        return try {
+            val uri = java.net.URI(fullUrl)
+            uri.host ?: "default-ip"
+        } catch (e: Exception) {
+            Log.e("ConfigError", "Invalid URL format: ${e.message}")
+            "default-ip"
+        }
+    }
+
     private fun sendRequest(type: String, method: String) {
         val fullURL = "$url/$method"
 
@@ -131,20 +154,17 @@ class HomeFragment : Fragment() {
                 val responseData = response.body?.string() ?: "No Response"
 
                 requireActivity().runOnUiThread {
-                    // Split into individual room IDs
-                    val roomIdList = responseData.split(" ")
+                    // Split into individual room IDs (assuming the response is space-separated)
+                    val roomIdList = responseData.split(",")
 
-                    // To connect the list of items to spinner
-                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, roomIdList)
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    // Create ArrayAdapter for the ListView
+                    val adapter = ArrayAdapter(requireContext(), R.layout.list_item_room, R.id.tvRoomItem, roomIdList)
 
-                    // Set the adapter to the Spinner
-                    binding.spinnerRoom.adapter = adapter
+                    // Set the adapter to the ListView
+                    binding.lvRoomName?.adapter = adapter
                 }
             }
         })
     }
-
-    
 
 }

@@ -54,6 +54,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.json.JSONException
 import java.util.Properties
 
 
@@ -64,11 +65,9 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
     private var deviceID: String = ""
     private var socket: Socket ?= null
     private var inputData: String? = null
-    private var inputRoomID: String? = null
-    private var targetId: Int? = null
+    private var inputRoomName: String? = null
+//    private var targetId: Int? = null
     private var url: String = ""
-
-
 
     companion object {
         const val ACTION_DICTATION = "com.realwear.keyboard.intent.action.DICTATION"
@@ -92,19 +91,27 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
         // Fetch data
         val args = this.arguments
         inputData = args?.getString("userInputIpAddress")
-        inputRoomID = args?.getString("userInputRoomID")
-        targetId = args?.getInt("targetId") // Get the ID
+        inputRoomName = args?.getString("userInputRoomName")
+//        targetId = args?.getInt("targetId") // Get the ID
 
 
-        if (inputData != null && inputRoomID != null) {
+        if (inputData != null && inputRoomName != null) {
 //            checkCameraPermission()
             deviceID = Settings.Secure.getString(requireActivity().contentResolver, Settings.Secure.ANDROID_ID).toString()
 
+
+
             setupRTSPStream()
-            onLaunchDictation(targetId, inputData,inputRoomID)
+            onLaunchDictation(deviceID, inputData, inputRoomName)
             setupIPSubmitButton()
 
-//            binding.tvResult.text = inputRoomID
+            // Kotlin allows smart casting for local variables only
+            val roomName = inputRoomName ?: return
+            fetchWorkflow(roomName)
+
+
+
+//            binding.tvResult.text = inputRoomName
         }else{
             Toast.makeText(requireContext(), "Invalid IP Address or Room Name", Toast.LENGTH_SHORT).show()
         }
@@ -163,6 +170,7 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
             val sequences = data.getString("sequence")
             val predicted_class = data.getString("predicted_class")
             val message = data.getString("message")
+//            val workflow = data.getString("workflow")
 
 //            val base64Image = data.getString("image")
 //            val decodedString = Base64.decode(base64Image, Base64.DEFAULT)
@@ -171,6 +179,7 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
             binding.tvPassValue.text = "Sequences: $sequences"
             binding.tvPassValue2.text = "Model Class: $predicted_class"
             binding.tvPassValue3.text = "Comment: $message"
+//            binding.tvWorkflowDesc.text = "$workflow"
 //            binding.ivDisplayImage.setImageBitmap(bitmap)
         }
     }
@@ -215,12 +224,12 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
     // Stream Start Button
     private fun setupIPSubmitButton() {
         // checkCameraPermission()
-        submitIPAndStartStream(inputData,inputRoomID)
+        submitIPAndStartStream(inputData,inputRoomName)
     }
 
-    private fun submitIPAndStartStream(inputData: String?,inputRoomID:String?) {
+    private fun submitIPAndStartStream(inputData: String?,inputRoomName:String?) {
         val userInputIpAddress = inputData?.trim()
-        val userRoom = inputRoomID?.trim()
+        val userRoom = inputRoomName?.trim()
 
         if (!userInputIpAddress.isNullOrEmpty() && !userRoom.isNullOrEmpty()) {
             // binding.userInputIPAddress.text.clear()
@@ -322,6 +331,63 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
     }
 
 
+//    private fun stopStream() {
+//        if (rtspCamera.isStreaming) {
+//            rtspCamera.stopStream()
+//            rtspCamera.stopPreview()
+//
+//            val textureView = binding.textureView
+//            textureView.surfaceTexture?.let {
+//                textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(
+//                    it
+//                )
+//            }
+//
+//            Toast.makeText(requireContext(), "Stream stopped and exit room", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+    private fun fetchWorkflow(roomName: String) {
+        val fullURL = "$url/send_workflow/$roomName"
+
+        val client = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .build()
+
+        val request = Request.Builder()
+            .url(fullURL)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseData = response.body?.string() ?: "No Response"
+
+                requireActivity().runOnUiThread {
+                    try {
+                        val jsonObject = JSONObject(responseData)
+                        val workflowArray = jsonObject.getJSONArray("workflow") // Get workflow as JSONArray
+
+                        val formattedWorkflow = StringBuilder()
+
+                        for (i in 0 until workflowArray.length()) {
+                            formattedWorkflow.append("${i + 1}. ${workflowArray.getString(i)}\n")
+                        }
+
+                        binding.tvWorkflowDesc.text = formattedWorkflow.toString().trim()
+
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        })
+    }
+
     private fun stopStream() {
         if (rtspCamera.isStreaming) {
             rtspCamera.stopStream()
@@ -329,14 +395,20 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
 
             val textureView = binding.textureView
             textureView.surfaceTexture?.let {
-                textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(
-                    it
-                )
+                textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(it)
             }
 
-            Toast.makeText(requireContext(), "Stream stopped and exit room", Toast.LENGTH_SHORT).show()
+            //  Notify server that user ends the stream (leave room)
+//            socket?.let {
+//                if (it.connected()) {
+//                    it.emit("end_stream")
+//                }
+//            }
+
+            Toast.makeText(requireContext(), "Stream stopped and exited room", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -394,16 +466,16 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
     }
 
     // Real Wear
-    fun onLaunchDictation(targetId: Int?, inputData: String?, inputRoomID: String?) {
+    fun onLaunchDictation(deviceID: String?, inputData: String?, inputRoomName: String?) {
         val intent = Intent(MainActivity.ACTION_DICTATION).apply {
-            if (targetId != null) {
-                putExtra("targetId", targetId) // Pass the ID of the target field
+            if (deviceID != null) {
+                putExtra("deviceID", deviceID) // Pass the ID of the target field
             }
             if (inputData != null) {
                 putExtra("text", inputData)
             }
-            if (inputRoomID != null) {
-                putExtra("text", inputRoomID)
+            if (inputRoomName != null) {
+                putExtra("text", inputRoomName)
             }
         }
         try {
