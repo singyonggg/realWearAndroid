@@ -179,7 +179,17 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
 
             socket = IO.socket("http://$userInputIpAddress:5000")
             socket?.connect()
-            socket?.emit("join", JSONObject().put("room", userRoom))
+
+            // socket?.emit("join", JSONObject().put("room", userRoom))
+
+            val data = JSONObject().apply {
+                put("room", userRoom)
+                put("camera_name", deviceID)  // ✅ Correct way to add multiple values
+            }
+
+            socket?.emit("join",data)
+
+//            socket?.emit("join", JSONObject().put("room", userRoom))
             Toast.makeText(requireContext(), deviceID, Toast.LENGTH_SHORT).show()
             socket?.on(deviceID, onDataReceived)
 
@@ -312,24 +322,47 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
         })
     }
 
+    //    private fun stopStream() {
+//        if (rtspCamera.isStreaming) {
+//            rtspCamera.stopStream()
+//            rtspCamera.stopPreview()
+//
+//            val textureView = binding.textureView
+//            textureView.surfaceTexture?.let {
+//                textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(
+//                    it
+//                )
+//            }
+//
+//            Toast.makeText(requireContext(), "Stream stopped and exit room", Toast.LENGTH_SHORT).show()
+//        }
+//    }
     private fun stopStream() {
+        val userRoom = inputRoomName?.trim()
         if (rtspCamera.isStreaming) {
             rtspCamera.stopStream()
             rtspCamera.stopPreview()
 
             val textureView = binding.textureView
-            textureView.surfaceTexture?.let {
-                textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(it)
+            textureView.surfaceTexture?.let { surfaceTexture ->
+                textureView.surfaceTextureListener?.onSurfaceTextureDestroyed(surfaceTexture)
             }
 
-            //  Notify server that user ends the stream (leave room)
-//            socket?.let {
-//                if (it.connected()) {
-//                    it.emit("end_stream")
-//                }
-//            }
+            // 🔥 Notify server that user ends the stream (leave room)
+            socket?.let {
+                if (it.connected()) {
+                    val data = JSONObject().apply {
+                        put("room", userRoom)
+                        put("camera_name", deviceID)  // ✅ Correct way to add multiple values
+                    }
 
-            Toast.makeText(requireContext(), "Stream stopped and exited room", Toast.LENGTH_SHORT).show()
+                    socket?.emit("leave", data)
+                    Log.d("Socket", "Leaving room with data: $data")
+                }
+            }
+
+            Toast.makeText(requireContext(), "Stream stopped and exited room", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -380,12 +413,17 @@ class LiveStreamingFragment : Fragment(), ConnectCheckerRtsp {
     override fun onDestroy() {
         super.onDestroy()
         stopStream()
-        socket?.let {
-            if (it.connected()) {
-                it.disconnect()
-                it.off("data", onDataReceived)
-            }
-        }
+        socket?.disconnect()
+        socket?.off(deviceID, onDataReceived)
+        socket?.off(Socket.EVENT_CONNECT)
+        socket?.off(Socket.EVENT_DISCONNECT)
+        socket?.off(Socket.EVENT_CONNECT_ERROR)
+//        socket?.let {
+//            if (it.connected()) {
+//                it.disconnect()
+//                it.off("data", onDataReceived)
+//            }
+//       }
     }
 
     // Real Wear
